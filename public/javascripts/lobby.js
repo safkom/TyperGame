@@ -1,21 +1,36 @@
-// public/javascripts/lobby.js
 document.addEventListener('DOMContentLoaded', () => {
     const lobbyInfoContainer = document.getElementById('lobbyInfo');
 
-    // Pridobite podatke iz URL-ja
+    // Get data from URL
     const urlParams = new URLSearchParams(window.location.search);
     const createdBy = urlParams.get('createdBy');
     const gameCode = urlParams.get('gameCode');
 
-    // Prikaz informacij o igri
+    // Display game information
     displayGameInfo(createdBy, gameCode);
 
-    // Funkcija za prikaz informacij o igri na zaslonu
+    // Function to display game information on the screen
     function displayGameInfo(createdBy, gameCode) {
         lobbyInfoContainer.innerHTML = `
-            <p>Waiting for another player to join...</p>
-            <p>Created by: ${createdBy}</p>
+            <p>Waiting for players to join...</p>
             <p>Game Code: ${gameCode}</p>
         `;
+    }
+
+    // Connect to WebSocket for real-time updates
+    const socket = io();
+
+    // Listen for 'playerJoined' events
+    socket.on('playerJoined', (player) => {
+        // Update the list of players in the lobby
+        updatePlayerList(player.name);
+    });
+
+    // Function to update the player list
+    function updatePlayerList(playerName) {
+        const playerListContainer = document.getElementById('playerList');
+        const listItem = document.createElement('li');
+        listItem.textContent = playerName;
+        playerListContainer.appendChild(listItem);
     }
 });

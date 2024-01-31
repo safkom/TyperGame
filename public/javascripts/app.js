@@ -1,16 +1,18 @@
-// public/js/app.js
 document.addEventListener('DOMContentLoaded', async () => {
     const createGameForm = document.getElementById('createGameForm');
+    const joinGameForm = document.getElementById('joinGameForm');
     const gameInfoContainer = document.getElementById('gameInfo');
+
+    let createdBy; // Declare createdBy outside the event listeners
 
     createGameForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const createdBy = document.getElementById('createdBy').value;
+        createdBy = document.getElementById('createdBy').value;
 
         try {
             const response = await fetch('/game/create', {
-                method: 'POST',
+                method: 'POST', // Change the method to POST
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -22,12 +24,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.gameCode) {
                 console.log('Game created with code:', data.gameCode);
 
-                // Posodobitev prikaza informacij o igri
-                gameInfoContainer.innerHTML = `
-                    <p>Game Code: ${data.gameCode}</p>
-                    <p>Created by: ${data.createdBy}</p>
-                    <p>Waiting for players...</p>
-                `;
+                // Redirect to the lobby
+                window.location.href = `/lobby?createdBy=${createdBy}&gameCode=${data.gameCode}`;
             } else {
                 console.error('Error creating game:', data.error);
             }
@@ -35,35 +33,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error creating game:', error);
         }
     });
-});
 
-    socket.on('gameCreated', ({ createdBy, gameCode }) => {
-        displayGameInfo(createdBy, gameCode, gameInfoContainer);
+    joinGameForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const gameCodeToJoin = document.getElementById('gameCodeToJoin').value;
+        const createdBy = document.getElementById('createdBy').value;
+
+        try {
+            const response = await fetch('/game/join', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ gameCode: gameCodeToJoin, playerName: createdBy }),
+            });
+
+            const data = await response.json();
+
+            if (data.redirectTo) {
+                console.log('Joined the game!');
+                window.location.href = data.redirectTo;
+                // Emit 'playerJoinGame' event to inform the server about the new player
+                const socket = io();
+                socket.emit('playerJoinGame', { playerName: createdBy, gameCode: gameCodeToJoin });
+            } else {
+                console.error('Error joining game:', data.error);
+                // Handle the case where the lobby code is incorrect or doesn't exist
+                gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;
+            }
+        } catch (error) {
+            console.error('Error joining game:', error);
+        }
     });
-
-    // Funkcija za prikaz informacij o igri na zaslonu
-    function displayGameInfo(createdBy, gameCode, container) {
-        if (createdBy && gameCode) {
-            container.innerHTML = `
-                <p>Waiting for another player to join...</p>
-                <p>Created by: ${createdBy}</p>
-                <p>Game Code: ${gameCode}</p>
-            `;
-        } else {
-            console.error('Invalid data received for game info:', { createdBy, gameCode });
-        }
-    }
-
-    // Funkcija za prikaz informacij o pridružitvi igri na zaslonu
-    function displayJoinGameInfo(joinedBy, gameCode, container) {
-        if (joinedBy && gameCode) {
-            container.innerHTML = `
-                <p>Joined the game!</p>
-                <p>Joined by: ${joinedBy}</p>
-                <p>Game Code: ${gameCode}</p>
-            `;
-        } else {
-            console.error('Invalid data received for join game info:', { joinedBy, gameCode });
-        }
-    }
 });

@@ -7,10 +7,10 @@ router.post('/create', async (req, res) => {
     try {
         const createdBy = req.body.createdBy;
 
-        // Ustvarite kodo igre
+        // Create the game code
         const gameCode = generateGameCode();
 
-        // Shrani igro v bazo
+        // Save the game to the database
         const game = new Game({
             createdBy,
             gameCode,
@@ -27,7 +27,7 @@ router.post('/create', async (req, res) => {
     }
 });
 
-// Dodajte funkcijo za generiranje kode igre
+// Add a function to generate the game code
 function generateGameCode(length = 6) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let gameCode = '';
