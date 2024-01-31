@@ -22,84 +22,14 @@
 <form id="joinGameForm">
     <label for="gameCodeToJoin">Game Code:</label>
     <input type="text" id="gameCodeToJoin" name="gameCodeToJoin" required>
-    <label for="playerName">Your Name:</label>
-    <input type="text" id="playerName" name="playerName" required>
+    <label for="playerNameInput">Your Name:</label>
+    <input type="text" id="playerNameInput" name="playerNameInput" required>
     <button type="submit">Join Game</button>
 </form>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-Mp4rTOpCId+h/gMa1AKYdjXxIi3BXFqCAxClsd9IGWWfJeJVhR6QpU8LTKZD1A9b" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
 <script src="/javascripts/app.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const createGameForm = document.getElementById('createGameForm');
-        const joinGameForm = document.getElementById('joinGameForm');
-        const gameInfoContainer = document.getElementById('gameInfo');
-
-        createGameForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const createdBy = document.getElementById('createdBy').value;
-
-            try {
-                const response = await fetch('/game/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ createdBy }),
-                });
-
-                const data = await response.json();
-
-                if (data.gameCode) {
-                    console.log('Game created with code:', data.gameCode);
-
-                    // Update the game info display
-                    gameInfoContainer.innerHTML = `
-                            <p>Game Code: ${data.gameCode}</p>
-                            <p>Created by: ${createdBy}</p>
-                            <p>Waiting for players...</p>
-                        `;
-                } else {
-                    console.error('Error creating game:', data.error);
-                }
-            } catch (error) {
-                console.error('Error creating game:', error);
-            }
-        });
-
-        joinGameForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const gameCodeToJoin = document.getElementById('gameCodeToJoin').value;
-
-            try {
-                const response = await fetch('/game/join', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ gameCode: gameCodeToJoin, playerName: createdBy }),
-                });
-
-                const data = await response.json();
-
-                if (data.redirectTo) {
-                    console.log('Joined the game!');
-                    window.location.href = data.redirectTo;
-                } else {
-                    console.error('Error joining game:', data.error);
-                    // Handle the case where the lobby code is incorrect or doesn't exist
-                    gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;
-                }
-            } catch (error) {
-                console.error('Error joining game:', error);
-            }
-        });
-    });
-</script>
 </body>
 </html>

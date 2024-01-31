@@ -1,17 +1,15 @@
 const mongoose = require('mongoose');
 
 const gameSchema = new mongoose.Schema({
-    createdBy: String,
-    gameCode: String,
-    maxPlayers: { type: Number, default: 1 }, // Set your desired maximum number of players
+    createdBy: { type: String, required: true },
+    gameCode: { type: String, required: true },
     players: [
         {
-            name: String,
-            socketId: String,
+            name: { type: String }, // Ensure that the name property is defined as a string
+            socketId: { type: String }, // Assuming socketId is also a string
         },
     ],
 });
 
 const Game = mongoose.model('Game', gameSchema);
-
 module.exports = Game;
