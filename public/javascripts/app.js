@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize the socket connection globally
     const socket = io('/game');
+    
 
     // Listen for server events
     socket.on('redirectToLobby', ({ createdBy, gameCode }) => {
@@ -15,31 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Redirect to the lobby with the necessary parameters
         window.location.href = `/lobby?gameCode=${gameCode}&playerName=${createdBy}`;
     });
-
-    socket.on('playerJoined', ({ playerName }) => {
-        console.log(`Player joined: ${playerName}`);
-        // Update the player list in the UI
-        updatePlayerList(playerName);
-    });
-
-    socket.on('enableStartGameButton', () => {
-        console.log('Enabling start game button');
-        // Enable the start game button in the UI
-        startGameButton.removeAttribute('disabled');
-    });
-
-    socket.on('startGame', () => {
-        console.log('Game starting');
-        // Redirect or perform actions when the game starts
-        // You can add more logic here based on your requirements
-    });
-
-    // Function to update the player list in the UI
-    function updatePlayerList(playerName) {
-        const playerListItem = document.createElement('li');
-        playerListItem.textContent = playerName;
-        playerListContainer.appendChild(playerListItem);
-    }
 
     createGameForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -74,16 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     joinGameForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
+    
         if (isJoiningGame) {
             return;
         }
-
+    
         isJoiningGame = true;
-
+    
         const gameCodeToJoin = document.getElementById('gameCodeToJoin').value;
         const playerName = document.getElementById('playerNameInput').value;
-
+    
         try {
             const response = await fetch('/game/join', {
                 method: 'POST',
@@ -92,16 +68,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ gameCode: gameCodeToJoin, playerName }),
             });
-
+    
             const data = await response.json();
-
+    
             if (data.redirectTo) {
                 console.log('Joined the game!');
-
+    
                 // Use the global socket connection to emit the event
                 socket.emit('joinGame', { playerName, gameCode: gameCodeToJoin });
-
+    
                 window.location.href = data.redirectTo;
+            } else if (data.error === 'Lobby is full') { // Check if the error is "Lobby is full"
+                console.error('Error joining game:', data.error);
+                gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;
             } else {
                 console.error('Error joining game:', data.error);
                 gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;

@@ -11,14 +11,22 @@
 <h1>Lobby</h1>
 
 <!-- Display the game code -->
-<p>Game Code: <%= gameCode %></p>
+<h3>Game Code: <span id="gameCode"><%= gameCode %></span></h3>
+<!-- Add a hidden input field for playerName -->
+<input type="hidden" id="playerName" value="<%= playerName %>">
 
 <h2>Players</h2>
-<ul id="playerList"></ul>
-
+<ul id="playerList">
+    <% players.forEach(player => { %>
+        <li class="<%= player.isCurrentPlayer ? 'current-player' : '' %>"><%= player.name %></li>
+    <% }); %>
+</ul>
+ 
 <button id="startGameButton" disabled>Start Game</button>
 
 <!-- Include the Socket.IO library -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
 <!-- Include your custom lobby.js script -->
 <script src="/javascripts/lobby.js"></script>
