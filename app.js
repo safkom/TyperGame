@@ -24,6 +24,10 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+app.get('/game', (req, res) => {
+  res.render('game');
+});
+
 app.get('/lobby', async (req, res) => {
   const gameCode = req.query.gameCode; // Assuming you are passing gameCode as a query parameter
   const playerName = req.query.playerName; // Assuming you are passing playerName as a query parameter
@@ -43,18 +47,20 @@ app.get('/lobby', async (req, res) => {
 
 app.get('/game/players', async (req, res) => {
   try {
-      const gameCode = req.query.gameCode;
-      const existingGame = await Game.findOne({ gameCode });
-      if (existingGame) {
-          return res.json({ players: existingGame.players });
-      } else {
-          return res.status(404).json({ error: 'Game not found' });
-      }
+    const gameCode = req.query.gameCode;
+    const existingGame = await Game.findOne({ gameCode });
+    if (existingGame) {
+      // Return players list and gameStarted status
+      return res.json({ players: existingGame.players, gameStarted: existingGame.gameStarted });
+    } else {
+      return res.status(404).json({ error: 'Game not found' });
+    }
   } catch (error) {
-      console.error('Error fetching players:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching players:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 // Game namespace
@@ -69,6 +75,7 @@ gameNamespace.on('connection', (socket) => {
       const newGame = new Game({
         createdBy,
         gameCode,
+        gameStarted: false,
         players: [{ name: createdBy, socketId: socket.id }],
       });
 
@@ -150,7 +157,7 @@ gameNamespace.on('connection', (socket) => {
     } catch (error) {
       console.error('Error joining game:', error);
     }
-  });  
+  });
 });
 
 app.post('/game/join', async (req, res) => {
@@ -198,15 +205,25 @@ app.post('/game/join', async (req, res) => {
 // Add a new route to handle the start game action
 app.post('/game/start', async (req, res) => {
   try {
-    const gameCode = req.body.gameCode;
+      const gameCode = req.body.gameCode;
 
-    // Emit an event to notify clients that the game is starting
-    gameNamespace.to(gameCode).emit('startGame');
+      // Find the game in the database
+      const existingGame = await Game.findOne({ gameCode });
 
-    res.json({ success: true });
+      if (existingGame) {
+          // Update the gameStarted variable to true
+          existingGame.gameStarted = true;
+          await existingGame.save();
+
+          // Respond with a JSON indicating the game has started
+          res.json({ gameStarted: true });
+      } else {
+          // Respond with a JSON indicating the game was not found
+          res.json({ gameStarted: false });
+      }
   } catch (error) {
-    console.error('Error starting game:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error starting game:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
