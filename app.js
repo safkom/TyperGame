@@ -37,6 +37,18 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Route to handle the result page
+// Route to handle the result page
+app.get('/result', async (req, res) => {
+  try {
+      // Render the result page
+      res.render('result');
+  } catch (error) {
+      console.error('Error rendering result page:', error);
+      res.render('error', { message: 'Internal Server Error', error: { status: 500 } });
+  }
+});
+
 app.get('/game', async (req, res) => {
   try {
     const gameCode = req.query.gameCode;
@@ -117,19 +129,27 @@ app.get('/game/players', async (req, res) => {
 
 app.get('/db', async (req, res) => {
   try {
-    const gameCode = req.query.gameCode;
-    const existingGame = await Game.findOne({ gameCode });
-    if (existingGame) {
-      // Return players list and gameStarted status
-      return res.json({timeTakenByWinner: existingGame.timeTakenByWinner, winner: existingGame.winner});
-    } else {
-      return res.status(404).json({ error: 'Game not found' });
-    }
+      const gameCode = req.query.gameCode;
+      const existingGame = await Game.findOne({ gameCode });
+      
+      if (existingGame) {
+          // Return players list, winner, timeTakenByWinner, and gameStarted status
+          return res.json({
+              players: existingGame.players,
+              timeTakenByWinner: existingGame.timeTakenByWinner,
+              winner: existingGame.winner,
+              gameStarted: existingGame.gameStarted
+          });
+      } else {
+          return res.status(404).json({ error: 'Game not found' });
+      }
   } catch (error) {
-    console.error('Error fetching players:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error fetching game data:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 
 app.post('/winner', async (req, res) => {
   const { gameCode, playerName, timeTaken } = req.body;
