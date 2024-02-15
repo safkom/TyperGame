@@ -5,13 +5,15 @@ const mongoose = require('mongoose');
 const path = require('path');
 const ejs = require('ejs');
 const Game = require('./models/game');
-
+const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
+const games = {};
+
 // Connect to MongoDB
-mongoose.connect('mongodb://server.safko.eu/my-typing-game', { useNewUrlParser: true });
+mongoose.connect('mongodb://server.safko.eu/my-typing-game');
 
 // Set up view engine and static files
 app.set('views', path.join(__dirname, 'views'));
@@ -19,14 +21,66 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public'), {
+  // Set the correct MIME type for .js files
+  setHeaders: (res, path, stat) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'text/javascript');
+    }
+  }
+}));
+
+
 // Routes
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/game', (req, res) => {
-  res.render('game');
+app.get('/game', async (req, res) => {
+  try {
+    const gameCode = req.query.gameCode;
+
+    // Find the game in the database based on the provided game code
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+
+    // Extract the words from the existingGame object
+    const words = existingGame.words;
+
+    // Render the game.ejs file with the words array
+    res.render('game', { words });
+  } catch (error) {
+    console.error('Error rendering game:', error);
+    res.render('error', { message: 'Internal Server Error', error: { status: 500 } });
+  }
 });
+
+app.get('/game/words', async (req, res) => {
+  try {
+    const gameCode = req.query.gameCode;
+
+    // Find the game in the database based on the provided game code
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+
+    // Assuming you have a field in your Game model called 'words'
+    const words = existingGame.words;
+
+    res.json({ words });
+  } catch (error) {
+    console.error('Error fetching words:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 app.get('/lobby', async (req, res) => {
   const gameCode = req.query.gameCode; // Assuming you are passing gameCode as a query parameter
@@ -61,6 +115,77 @@ app.get('/game/players', async (req, res) => {
   }
 });
 
+app.get('/db', async (req, res) => {
+  try {
+    const gameCode = req.query.gameCode;
+    const existingGame = await Game.findOne({ gameCode });
+    if (existingGame) {
+      // Return players list and gameStarted status
+      return res.json({timeTakenByWinner: existingGame.timeTakenByWinner, winner: existingGame.winner});
+    } else {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching players:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/winner', async (req, res) => {
+  const { gameCode, playerName, timeTaken } = req.body;
+
+  try {
+    // Find the game in the database
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).send('Game not found');
+    }
+
+    // Check if winner and timeTakenByWinner are null
+    if (existingGame.winner !== null && existingGame.timeTakenByWinner !== null) {
+      return res.status(400).send('Winner data already entered');
+    }
+
+    // Update game with winner data
+    existingGame.winner = playerName;
+    existingGame.timeTakenByWinner = timeTaken;
+    await existingGame.save();
+
+    // Send response
+    res.status(200).send('Winner data saved');
+  } catch (error) {
+    console.error('Error entering winner data:', error);
+    res.status(500).send('Failed to enter winner data');
+  }
+});
+
+app.post('/data', async (req, res) => {
+  const { gameCode, playerName, timeTaken } = req.body;
+
+  try {
+    // Find the game in the database
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).send('Game not found');
+    }
+
+    // Find the player who didn't win and update their time taken
+    const playerIndex = existingGame.players.findIndex(player => player.name === playerName);
+    if (playerIndex !== -1) {
+      existingGame.players[playerIndex].timeTaken = timeTaken;
+      await existingGame.save();
+      return res.status(200).send('Player data updated');
+    } else {
+      return res.status(400).send('Player not found');
+    }
+  } catch (error) {
+    console.error('Error updating player data:', error);
+    res.status(500).send('Failed to update player data');
+  }
+});
+
 
 
 // Game namespace
@@ -71,26 +196,39 @@ gameNamespace.on('connection', (socket) => {
     try {
       console.log(`Game created by ${createdBy}, code: ${gameCode}`);
 
-      // Save the game data to the database
-      const newGame = new Game({
-        createdBy,
-        gameCode,
-        gameStarted: false,
-        players: [{ name: createdBy, socketId: socket.id }],
-      });
+      // Make a request to the quotes API to get 20 random words
+      const response = await axios.get('https://api.quotable.io/quotes/random?minLength=100&maxLength=140');
+      
+      // Check if response data is available and has content property
+      if (response.data && response.data.length > 0 && response.data[0].content) {
+        const quoteContent = response.data[0].content;
+        // Split the content into words
+        const words = quoteContent.split(' '); // Extract the first 20 words from the response
 
-      await newGame.save();
+        // Save the game data to the database
+        const newGame = new Game({
+          createdBy,
+          gameCode,
+          gameStarted: false,
+          players: [{ name: createdBy, socketId: socket.id }],
+          words: words, // Add the words to the game
+        });
 
-      // Join the socket to the game room
-      socket.join(gameCode);
+        await newGame.save();
 
-      console.log(`Player ${createdBy} added to the player list`);
+        // Join the socket to the game room
+        socket.join(gameCode);
 
-      // Emit the updated player list to all clients in the game room
-      gameNamespace.to(gameCode).emit('updatePlayerList', { players: [{ name: createdBy }] });
+        console.log(`Player ${createdBy} added to the player list`);
 
-      // Redirect to the lobby with the necessary parameters
-      gameNamespace.to(gameCode).emit('redirectToLobby', { createdBy, gameCode });
+        // Emit the updated player list to all clients in the game room
+        gameNamespace.to(gameCode).emit('updatePlayerList', { players: [{ name: createdBy }] });
+
+        // Redirect to the lobby with the necessary parameters
+        gameNamespace.to(gameCode).emit('redirectToLobby', { createdBy, gameCode });
+      } else {
+        throw new Error('Response data or content property is undefined');
+      }
 
     } catch (error) {
       console.error('Error creating game:', error);
@@ -124,7 +262,6 @@ gameNamespace.on('connection', (socket) => {
         console.error('Game not found:', gameCode);
         return;
       }
-      console.log('Number of player: ', players.length);
       // Check if the lobby is full
       if (existingGame.players.length >= 2) {
         console.error('Lobby is full:', gameCode);

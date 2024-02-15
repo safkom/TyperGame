@@ -48,8 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check if the game has started and redirect if it has
         if (gameStarted) {
-            window.location.href = '/game';
+            const gameCode = gameCodeInput.textContent;
+            window.location.href = `/game?gameCode=${encodeURIComponent(gameCode)}&playerName=${encodeURIComponent(currentPlayerName)}`;
         }
+        
     }
 
     // Fetch updated player list periodically (every 5 seconds)
