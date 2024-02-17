@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) {
                 throw new Error('Failed to fetch game data');
             }
-            return await response.json();
+            displayLobbyInfo(await response.json());
         } catch (error) {
             console.error('Error fetching game data:', error);
             return null;
@@ -74,9 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    const gameData = await fetchGameData();
-    setInterval(displayLobbyInfo(gameData), 1000);
+    setInterval(fetchGameData, 100); // Corrected setInterval usage
 
+    const indexPageButton = document.getElementById('indexPageButton'); // Define indexPageButton
     indexPageButton.addEventListener('click', () => {
         window.location.href = '/';
     });

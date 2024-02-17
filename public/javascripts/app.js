@@ -97,4 +97,5 @@ document.addEventListener('DOMContentLoaded', () => {
         // Send a request to start the game to the server
         socket.emit('startGame', { gameCode: createdBy }); // Assuming createdBy is the game code
     });
+
 });

@@ -10,3 +10,110 @@ a {
   font-weight: bold;
 }
 
+/* public/stylesheets/style.css */
+/* public/stylesheets/style.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #222;
+  color: white;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+p{
+  font-size: 20px;
+}
+
+/* Center the forms vertically and horizontally */
+#selectionScreen, #createGameForm, #joinGameForm {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+h1, h2 {
+  color: #007bff;
+}
+ul {
+  margin-left: 0; /* Remove default margin */
+  padding-left: 0; /* Remove default padding */
+  list-style-position: inside;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+label {
+  margin-bottom: 5px;
+}
+
+input[type="text"] {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  transition: all 0.3s ease; /* Add transition for input fields */
+}
+
+/* Fade in/out animation for forms */
+.fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Add this CSS to your style.css file */
+.progress-container {
+  margin-bottom: 10px;
+}
+
+.progress-bar-container {
+  background-color: #f0f0f0; /* Light grey background */
+  border-radius: 5px; /* Rounded corners */
+  overflow: hidden; /* Hide overflow */
+}
+
+.progress-bar {
+  height: 24px; /* Set the height of the progress bar */
+  background-color: #007bff; /* Blue color for the progress bar */
+  transition: width 0.3s ease-in-out; /* Smooth transition for width changes */
+  text-align: center; /* Center the text inside the progress bar */
+  line-height: 24px; /* Center vertically */
+  color: white; /* Text color */
+  font-weight: bold; /* Bold font */
+}
+
+.player-name {
+  margin-bottom: 5px; /* Add space below player name */
+}
+
+
+
+
+

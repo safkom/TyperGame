@@ -60,16 +60,22 @@ app.get('/game', async (req, res) => {
       return res.status(404).json({ error: 'Game not found' });
     }
 
-    // Extract the words from the existingGame object
+    // Extract the words and players from the existingGame object
     const words = existingGame.words;
+    const players = existingGame.players; // Assuming each player has a 'name' property
 
-    // Render the game.ejs file with the words array
-    res.render('game', { words });
+    // Get the player's name from the query parameters
+    const playerName = req.query.playerName;
+
+    // Render the game.ejs file with the words, players, and playerName
+    res.render('game', { words, players, playerName });
   } catch (error) {
     console.error('Error rendering game:', error);
     res.render('error', { message: 'Internal Server Error', error: { status: 500 } });
   }
 });
+
+
 
 app.get('/game/words', async (req, res) => {
   try {
@@ -138,7 +144,8 @@ app.get('/db', async (req, res) => {
               players: existingGame.players,
               timeTakenByWinner: existingGame.timeTakenByWinner,
               winner: existingGame.winner,
-              gameStarted: existingGame.gameStarted
+              gameStarted: existingGame.gameStarted,
+              words: existingGame.words
           });
       } else {
           return res.status(404).json({ error: 'Game not found' });
@@ -206,6 +213,32 @@ app.post('/data', async (req, res) => {
   }
 });
 
+app.post('/words', async (req, res) => {
+  const { gameCode, playerName, wordsCompleted } = req.body;
+
+  try {
+    // Find the game in the database
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).send('Game not found');
+    }
+
+    // Find the player who didn't win and update their time taken
+    const playerIndex = existingGame.players.findIndex(player => player.name === playerName);
+    if (playerIndex !== -1) {
+      existingGame.players[playerIndex].wordsCompleted = wordsCompleted;
+      await existingGame.save();
+      return res.status(200).send('Player data updated');
+    } else {
+      return res.status(400).send('Player not found');
+    }
+  } catch (error) {
+    console.error('Error updating player data:', error);
+    res.status(500).send('Failed to update player data');
+  }
+});
+
 
 
 // Game namespace
@@ -230,8 +263,9 @@ gameNamespace.on('connection', (socket) => {
           createdBy,
           gameCode,
           gameStarted: false,
-          players: [{ name: createdBy, socketId: socket.id }],
+          players: [{ name: createdBy, socketId: socket.id, wordsCompleted: 0, timeTaken: null}],
           words: words, // Add the words to the game
+
         });
 
         await newGame.save();

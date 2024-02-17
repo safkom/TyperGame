@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const wordListContainer = document.getElementById('wordList');
     const inputWord = document.getElementById('inputWord');
     let currentWordIndex = 0;
+    let words = 0;
     let startTime = Date.now();
 
     // Function to fetch the words from the server
@@ -69,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wordListContainer.children[currentWordIndex].classList.add('correct');
             // Move to the next word
             currentWordIndex++;
+            enterWords(gameCode, getName(), currentWordIndex);
 
             // Check if all words are correct
             if (currentWordIndex === wordListContainer.children.length) {
@@ -159,5 +161,83 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error entering winner data:', error);
         }
     }
+
+    async function updateProgressBars(game) {
+        const playerName = getName();
+        const progressBarContainer = document.getElementById('progressBars');
     
+        if (game && game.players && playerName) {
+            const totalWords = game.words.length;
+    
+            game.players.forEach(player => {
+                const progress = (player.wordsCompleted / totalWords) * 100; // Calculate progress percentage
+                const progressBarId = `progressBar-${player.name}`;
+                const progressBar = document.getElementById(progressBarId);
+    
+                if (progressBar) {
+                    // Update progress bar width
+                    progressBar.style.width = `${progress}%`;
+    
+                    // Update progress label
+                    const progressLabelId = `progressLabel-${player.name}`;
+                    const progressLabel = document.getElementById(progressLabelId);
+                    if (progressLabel) {
+                        progressLabel.textContent = `${Math.round(progress)}%`;
+                    }
+                }
+            });
+        }
+    }    
+    
+
+    async function enterWords(gameCode, playerName, currentWordIndex) {
+        try {
+            // Update the game with the winner and time taken
+            const response = await fetch('/words', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    gameCode,
+                    playerName,
+                    wordsCompleted: currentWordIndex,
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to enter data');
+            }
+    
+            console.log('Data saved:', playerName, currentWordIndex);
+    
+        } catch (error) {
+            console.error('Error entering data:', error);
+        }
+    }
+    
+
+    async function fetchData(gameCode) {
+        try {
+            const response = await fetch(`/db?gameCode=${gameCode}`);
+    
+            if (!response.ok) {
+                throw new Error('Failed to fetch game');
+            }
+            const game = await response.json();
+            
+            updateProgressBars(game);
+            
+        } catch (error) {
+            console.error('Error fetching game:', error);
+        }
+    } 
+    
+    //fetch data frequently
+    setInterval(() => {
+        const gameCode = getGameCodeFromUrl();
+        if (gameCode) {
+            fetchData(gameCode);
+        }
+    }, 100);
 });
