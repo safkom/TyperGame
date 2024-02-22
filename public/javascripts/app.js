@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerListContainer = document.getElementById('playerList');
     const startGameButton = document.getElementById('startGameButton');
     let createdBy;
+    const errorBox = document.getElementById('errorBox');
 
     // Initialize the socket connection globally
     const socket = io('/game');
@@ -80,13 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = data.redirectTo;
             } else if (data.error === 'Lobby is full') { // Check if the error is "Lobby is full"
                 console.error('Error joining game:', data.error);
-                gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;
+                const message = 'Lobby is full!';
+                showError(message);
             } else {
                 console.error('Error joining game:', data.error);
-                gameInfoContainer.innerHTML = `<p>Error joining game: ${data.error}</p>`;
+                const message = 'Error joining game' + data.error;
+                showError(message);
             }
         } catch (error) {
             console.error('Error joining game:', error);
+            message = 'Error joining game' + error;
+            showError(message);
         } finally {
             isJoiningGame = false;
         }
@@ -98,4 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.emit('startGame', { gameCode: createdBy }); // Assuming createdBy is the game code
     });
 
+    // Function to show the error box with the given message
+    function showError(message) {
+        console.log('Box shown.');
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+        setTimeout(() => {
+            errorBox.style.display = 'none';
+        }, 5000);
+    }
 });

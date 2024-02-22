@@ -5,50 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/stylesheets/style.css">
     <title>Game</title>
-    <style>
-        #inputWord {
-            width: 80%;
-            height: 30px;
-            font-size: 16px;
-        }
-        .correct {
-            color: green;
-        }
-        .incorrect {
-            color: red;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <div id="wordList">
+        <div id="wordList" class="word-list">
             <!-- Display the list of words here -->
-            <% words.forEach(word => { %>
-                <span><%= word %> </span>
-            <% }) %>        
+            <% words.forEach((word, index) => { %>
+                <span id="word<%= index %>" class="word <%= index === currentWordIndex ? 'current-word' : (index < currentWordIndex ? 'completed-word' : '') %>"><%= word %></span><%= index < words.length - 1 ? ' ' : '' %>
+            <% }) %>
         </div>
         
         <input type="text" id="inputWord" placeholder="Type here...">
     
         <!-- Progress bar for other player(s) -->
         <div id="progressBars" class="w3-container">
-    
             <h2>Player Progress</h2>
-    
             <% players.forEach(player => { %>
                 <div class="progress-container">
                     <p class="player-name"><%= player.name %>:</p>
                     <div class="progress-bar-container">
-                        <div id="progressBar-<%= player.name %>" class="progress-bar" style="width: 0;"></div>
+                        <div id="progressBar-<%= player.name %>" class="progress-bar" style="width: <%= (player.wordsCompleted / words.length) * 100 %>%;"></div>
                     </div>
-                    <p id="progressLabel-<%= player.name %>">0%</p>
+                    <p id="progressLabel-<%= player.name %>"><%= Math.round((player.wordsCompleted / words.length) * 100) %>%</p>
                 </div>
             <% }) %>
-    
         </div>
-    
     </div>
-    
+
 <script src="/javascripts/game.js"></script>
 </body>
 </html>

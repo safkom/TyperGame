@@ -18,6 +18,10 @@ body {
   color: white;
 }
 
+button:disabled {
+ background-color: gray;
+}
+
 .container {
   width: 100%;
   max-width: 600px;
@@ -94,19 +98,19 @@ input[type="text"] {
 }
 
 .progress-bar-container {
-  background-color: #f0f0f0; /* Light grey background */
-  border-radius: 5px; /* Rounded corners */
-  overflow: hidden; /* Hide overflow */
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .progress-bar {
-  height: 24px; /* Set the height of the progress bar */
-  background-color: #007bff; /* Blue color for the progress bar */
-  transition: width 0.3s ease-in-out; /* Smooth transition for width changes */
-  text-align: center; /* Center the text inside the progress bar */
-  line-height: 24px; /* Center vertically */
-  color: white; /* Text color */
-  font-weight: bold; /* Bold font */
+  height: 24px;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
+  text-align: center;
+  line-height: 24px;
+  color: white;
+  font-weight: bold;
 }
 
 .player-name {
@@ -135,6 +139,77 @@ input[type="text"] {
     padding: 6px; /* Decrease padding for smaller screens */
   }
 }
+.word-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.word {
+  margin: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #333;
+  transition: background-color 0.3s ease;
+}
+#inputWord {
+  width: 80%;
+  height: 30px;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+@keyframes blow-up {
+  0% {
+      transform: scale(1);
+      opacity: 1;
+  }
+  100% {
+      transform: scale(1.5);
+      opacity: 0;
+  }
+}
+
+.blow-up {
+  animation: blow-up 0.5s forwards;
+}
+
+.error-box {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background-color: #ff9999;
+  color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slide-in 0.5s ease-out forwards, fade-out 4s ease-in forwards;
+}
+
+@keyframes slide-in {
+  from {
+      transform: translate(-50%, -100%);
+  }
+  to {
+      transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes fade-out {
+  0% {
+      opacity: 1;
+  }
+  90% {
+      opacity: 1;
+  }
+  100% {
+      opacity: 0;
+  }
+}
+
 
 
 

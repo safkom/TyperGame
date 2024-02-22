@@ -67,8 +67,12 @@ app.get('/game', async (req, res) => {
     // Get the player's name from the query parameters
     const playerName = req.query.playerName;
 
-    // Render the game.ejs file with the words, players, and playerName
-    res.render('game', { words, players, playerName });
+    // Find the player's progress in the game
+    const player = players.find(player => player.name === playerName);
+    const currentWordIndex = player.wordsCompleted;
+
+    // Render the game.ejs file with the words, players, playerName, and currentWordIndex
+    res.render('game', { words, players, playerName, currentWordIndex });
   } catch (error) {
     console.error('Error rendering game:', error);
     res.render('error', { message: 'Internal Server Error', error: { status: 500 } });
@@ -307,91 +311,108 @@ gameNamespace.on('connection', (socket) => {
 
   // inside gameNamespace.on('connection', (socket) => { ... })
 
+  // inside gameNamespace.on('connection', (socket) => { ... })
+
   socket.on('joinGame', async ({ playerName, gameCode }) => {
     try {
-      // Find the game in the database
-      const existingGame = await Game.findOne({ gameCode });
-  
-      if (!existingGame) {
-        console.error('Game not found:', gameCode);
-        return;
-      }
-      // Check if the lobby is full
-      if (existingGame.players.length >= 2) {
-        console.error('Lobby is full:', gameCode);
-        // Emit an event to notify the client that the lobby is full
-        socket.emit('lobbyFullError', { error: 'Lobby is full' });
-        return;
-      }
-  
-      // Check if the player already exists in the game
-      const playerIndex = existingGame.players.findIndex(player => player.name === playerName);
-      if (playerIndex === -1) {
+        // Find the game in the database
+        const existingGame = await Game.findOne({ gameCode });
+
+        if (!existingGame) {
+            console.error('Game not found:', gameCode);
+            return;
+        }
+        // Check if the lobby is full
+        if (existingGame.players.length >= 2) {
+            console.error('Lobby is full:', gameCode);
+            // Emit an event to notify the client that the lobby is full
+            socket.emit('lobbyFullError', { error: 'Lobby is full' });
+            return;
+        }
+
+        // Check if the player already exists in the game
+        const playerIndex = existingGame.players.findIndex(player => player.name === playerName);
+        if (playerIndex !== -1) {
+            // Player already exists, emit an event to notify the client
+            socket.emit('playerExistsError', { error: 'Player with the same name already exists in the lobby' });
+            return;
+        }
+
         // Player doesn't exist, add them to the game
         existingGame.players.push({ name: playerName });
-      } else {
-        // Player already exists, update their information
-        existingGame.players[playerIndex].socketId = socket.id;
-      }
-  
-      await existingGame.save();
-  
-      // Emit the updated player list to all clients in the game room
-      gameNamespace.to(gameCode).emit('updatePlayerList', { players: existingGame.players });
-  
-      // If there are two players, emit an event to enable the start game button
-      if (existingGame.players.length === existingGame.maxPlayers) {
-        gameNamespace.to(gameCode).emit('enableStartGameButton');
-      }
-  
-      console.log(`Player ${playerName} added to the player list`);
+        await existingGame.save();
+
+        // Emit the updated player list to all clients in the game room
+        gameNamespace.to(gameCode).emit('updatePlayerList', { players: existingGame.players });
+
+        // If there are two players, emit an event to enable the start game button
+        if (existingGame.players.length === existingGame.maxPlayers) {
+            gameNamespace.to(gameCode).emit('enableStartGameButton');
+        }
+
+        console.log(`Player ${playerName} added to the player list`);
     } catch (error) {
-      console.error('Error joining game:', error);
+        console.error('Error joining game:', error);
     }
-  });
+});
 });
 
 app.post('/game/join', async (req, res) => {
   try {
-    const playerName = req.body.playerName;
-    const gameCode = req.body.gameCode;
+      const playerName = req.body.playerName;
+      const gameCode = req.body.gameCode;
 
-    // Find the game in the database
-    const existingGame = await Game.findOne({ gameCode });
+      // Find the game in the database
+      const existingGame = await Game.findOne({ gameCode });
 
-    if (!existingGame) {
-      // If the game is not found, return a JSON response
-      return res.status(404).json({ error: 'Game not found' });
-    }
+      if (!existingGame) {
+          // If the game is not found, return a JSON response
+          return res.status(404).json({ error: 'Game not found' });
+      }
 
-    // Check if the lobby is full
-    if (existingGame.players.length >= 2) {
-      // If the lobby is full, return a JSON response
-      return res.status(400).json({ error: 'Lobby is full' });
-    }
+      // Check if the lobby is full
+      if (existingGame.players.length >= 2) {
+          // If the lobby is full, return a JSON response
+          return res.status(400).json({ error: 'Lobby is full' });
+      }
 
-    // Save the player's name in the database for the corresponding game
-    existingGame.players.push({ name: playerName });
-    await existingGame.save();
+      // Check if the playerName is the same as the createdBy name
+      if (existingGame.createdBy === playerName) {
+          // If the playerName is the same as the createdBy name, return a JSON response
+          return res.status(400).json({ error: 'Player with the same name as the creator already exists in the lobby' });
+      }
 
-    // Emit socket events
-    gameNamespace.to(gameCode).emit('playerJoined', { playerName });
+      // Check if the player already exists in the game
+      const playerIndex = existingGame.players.findIndex(player => player.name === playerName);
+      if (playerIndex !== -1) {
+          // Player already exists, emit an event to notify the client
+          return res.status(400).json({ error: 'Player with the same name already exists in the lobby' });
+      }
 
-    // If there are two players, emit an event to enable the start game button
-    if (existingGame.players.length === 2) {
-      gameNamespace.to(gameCode).emit('enableStartGameButton');
-    }
+      // Save the player's name in the database for the corresponding game
+      existingGame.players.push({ name: playerName });
+      await existingGame.save();
 
-    // Emit an event to update the player list in the lobby
-    io.to(gameCode).emit('updatePlayerList', { players: existingGame.players });
+      // Emit socket events
+      gameNamespace.to(gameCode).emit('playerJoined', { playerName });
 
-    // Redirect to the lobby with the necessary parameters
-    res.json({ redirectTo: `/lobby?gameCode=${gameCode}&playerName=${playerName}` });
+      // If there are two players, emit an event to enable the start game button
+      if (existingGame.players.length === 2) {
+          gameNamespace.to(gameCode).emit('enableStartGameButton');
+      }
+
+      // Emit an event to update the player list in the lobby
+      io.to(gameCode).emit('updatePlayerList', { players: existingGame.players });
+
+      // Redirect to the lobby with the necessary parameters
+      res.json({ redirectTo: `/lobby?gameCode=${gameCode}&playerName=${playerName}` });
   } catch (error) {
-    console.error('Error joining game:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error joining game:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 
 // Add a new route to handle the start game action
 app.post('/game/start', async (req, res) => {
@@ -446,7 +467,7 @@ function generateGameCode(length = 6) {
 }
 
 // Set up the server to listen on a port
-const port = normalizePort(process.env.PORT || '3002');
+const port = normalizePort(process.env.PORT || '9343');
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   app.set('port', port);
