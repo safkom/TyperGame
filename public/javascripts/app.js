@@ -80,17 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
                 window.location.href = data.redirectTo;
             } else if (data.error === 'Lobby is full') { // Check if the error is "Lobby is full"
-                console.error('Error joining game:', data.error);
+                console.error('Error joining game: ', data.error);
                 const message = 'Lobby is full!';
                 showError(message);
             } else {
                 console.error('Error joining game:', data.error);
-                const message = 'Error joining game' + data.error;
+                const message = 'Error joining game: ' + data.error;
                 showError(message);
             }
         } catch (error) {
             console.error('Error joining game:', error);
-            message = 'Error joining game' + error;
+            message = 'Error joining game: ' + error;
             showError(message);
         } finally {
             isJoiningGame = false;

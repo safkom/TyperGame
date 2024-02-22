@@ -5,28 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let words = 0;
     let startTime = Date.now();
 
-    // Function to fetch the words from the server
-    function fetchWords(gameCode) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/game/words?gameCode=${gameCode}`, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response && response.words) {
-                        words = response.words; // Update the words
-                        displayWords(words);
-                    }
-                } else {
-                    console.error('Error fetching words:', xhr.status);
-                }
-            }
-        };
-        xhr.send();
-    }
-
-
-
     // Function to get the value of the gameCode query parameter from the URL
     function getGameCodeFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -45,40 +23,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch words when the page loads
     const gameCode = getGameCodeFromUrl();
-    if (gameCode) {
-        fetchWords(gameCode);
-    } else {
-        console.error('Game code not found in URL');
-    }
 
     // Add event listener to the input field
     // Add event listener to the input field
-inputWord.addEventListener('input', () => {
-    const typedWord = inputWord.value.trim();
-    const currentWordElement = wordListContainer.children[currentWordIndex];
-
-    if (typedWord === currentWordElement.textContent.trim()) {
-        // Clear the input field
-        inputWord.value = '';
-
-        // Apply animation class
-        currentWordElement.classList.add('correct', 'blow-up');
-
-        // Move to the next word
-        currentWordIndex++;
-
-        // Enter completed word
-        enterWords(gameCode, getName(), currentWordIndex);
-
-        // Check if all words are correct
-        if (currentWordIndex === wordListContainer.children.length) {
-            // All words are correct, check if there is a winner
-            const playerName = getName();
-            const timeTaken = updateStopwatch(); // Calculate elapsed time
-            checkWinner(gameCode, playerName, timeTaken);
+    inputWord.addEventListener('input', () => {
+        const typedWord = inputWord.value.trim();
+        const currentWordElement = wordListContainer.children[currentWordIndex];
+        const currentWord = currentWordElement.textContent.trim();
+    
+        let correctLetters = 0;
+    
+        for (let i = 0; i < typedWord.length; i++) {
+            if (typedWord[i] === currentWord[i]) {
+                correctLetters++;
+            } else {
+                // Apply error style if a letter is wrong
+                currentWordElement.classList.add('error');
+                currentWordElement.classList.remove('correct');
+                return; // Exit the loop if there's an error
+            }
         }
+    
+        // Remove error style if all letters are correct
+        currentWordElement.classList.remove('error');
+    
+        // Apply correct style if all letters are typed correctly
+        if (correctLetters === currentWord.length) {
+            currentWordElement.classList.add('correct');
+        } else {
+            currentWordElement.classList.remove('correct');
+        }
+    
+        // Check if the whole word is typed correctly
+        if (typedWord === currentWord) {
+            // Clear the input field
+            inputWord.value = '';
+    
+            // Move to the next word
+            currentWordIndex++;
+            if(currentWordIndex < wordListContainer.children.length){
+                highlightCurrentWord(currentWordIndex);
+            }
+    
+            // Enter completed word
+            enterWords(gameCode, getName(), currentWordIndex);
+    
+            // Check if all words are correct
+            if (currentWordIndex === wordListContainer.children.length) {
+                // All words are correct, check if there is a winner
+                const playerName = getName();
+                const timeTaken = updateStopwatch(); // Calculate elapsed time
+                checkWinner(gameCode, playerName, timeTaken);
+            }
+        }
+    });
+    
+
+    function highlightCurrentWord(index) {
+        // Remove the 'current-word' class from all words
+        wordListContainer.querySelectorAll('.word').forEach(word => {
+            word.classList.remove('current-word');
+        });
+        // Add the 'current-word' class to the current word
+        const currentWordElement = wordListContainer.children[index];
+        currentWordElement.classList.add('current-word');
     }
-});
 
 
     async function checkWinner(gameCode, playerName, timeTaken) {
@@ -169,7 +178,10 @@ inputWord.addEventListener('input', () => {
             const totalWords = game.words.length;
     
             game.players.forEach(player => {
-                const progress = (player.wordsCompleted / totalWords) * 100; // Calculate progress percentage
+                let progress = (player.wordsCompleted / totalWords) * 100; // Calculate progress percentage
+                if (progress >= 100) {
+                    progress = 100; // Ensure progress is capped at 100%
+                }
                 const progressBarId = `progressBar-${player.name}`;
                 const progressBar = document.getElementById(progressBarId);
     
@@ -186,7 +198,8 @@ inputWord.addEventListener('input', () => {
                 }
             });
         }
-    }    
+    }
+    
     
 
     async function enterWords(gameCode, playerName, currentWordIndex) {

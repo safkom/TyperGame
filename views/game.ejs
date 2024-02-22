@@ -12,7 +12,7 @@
             <!-- Display the list of words here -->
             <% words.forEach((word, index) => { %>
                 <span id="word<%= index %>" class="word <%= index === currentWordIndex ? 'current-word' : (index < currentWordIndex ? 'completed-word' : '') %>"><%= word %></span><%= index < words.length - 1 ? ' ' : '' %>
-            <% }) %>
+            <% }) %>            
         </div>
         
         <input type="text" id="inputWord" placeholder="Type here...">

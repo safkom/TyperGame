@@ -115,6 +115,12 @@ input[type="text"] {
 
 .player-name {
   margin-bottom: 5px; /* Add space below player name */
+  font-size: 20px; /* Increase font size */
+}
+
+#playerList {
+  margin-bottom: 20px; /* Add space below player list */
+  font-size: 20px; /* Increase font size */
 }
 
 @media only screen and (max-width: 600px) {
@@ -152,6 +158,19 @@ input[type="text"] {
   background-color: #333;
   transition: background-color 0.3s ease;
 }
+
+.correct {
+  background-color: rgb(69, 189, 69);
+}
+
+.current-word {
+  background-color: #007bff; /* Your original current word color */
+}
+.error {
+  background-color: red;
+}
+
+
 #inputWord {
   width: 80%;
   height: 30px;
@@ -176,10 +195,10 @@ input[type="text"] {
 
 .error-box {
   display: none;
-  position: fixed;
-  top: 50%;
+  position: absolute; /* Change from fixed to absolute */
+  bottom: 0; /* Position it at the bottom */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   padding: 20px;
   background-color: #ff9999;
   color: #fff;
@@ -187,7 +206,9 @@ input[type="text"] {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   animation: slide-in 0.5s ease-out forwards, fade-out 4s ease-in forwards;
+  margin-bottom: 10px; /* Adjust as needed */
 }
+
 
 @keyframes slide-in {
   from {
@@ -209,8 +230,3 @@ input[type="text"] {
       opacity: 0;
   }
 }
-
-
-
-
-

@@ -352,7 +352,7 @@ gameNamespace.on('connection', (socket) => {
 
         console.log(`Player ${playerName} added to the player list`);
     } catch (error) {
-        console.error('Error joining game:', error);
+        console.error('Error joining game: ', error);
     }
 });
 });
