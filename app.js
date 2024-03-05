@@ -361,6 +361,7 @@ app.post('/game/join', async (req, res) => {
   try {
       const playerName = req.body.playerName;
       const gameCode = req.body.gameCode;
+      const gamesWonCookie = req.body.gamesWonCookie;
 
       // Find the game in the database
       const existingGame = await Game.findOne({ gameCode });
@@ -390,7 +391,7 @@ app.post('/game/join', async (req, res) => {
       }
 
       // Save the player's name in the database for the corresponding game
-      existingGame.players.push({ name: playerName });
+      existingGame.players.push({ name: playerName, gamesWon: gamesWonCookie});
       await existingGame.save();
 
       // Emit socket events

@@ -2,6 +2,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gameCode = urlParams.get('gameCode');
     const playerName = urlParams.get('playerName');
+    let audioPlayed = false;
+
+    function playAudio(url, boolWinner) {
+        if (!audioPlayed) {
+            const audio = new Audio(url);
+            audio.play()
+                .then(() => {
+                    console.log('Audio played successfully');
+                    audioPlayed = true;
+                    fadeInImage(boolWinner);
+                    setTimeout(fadeOutImage, 1000);
+                })
+                .catch(error => {
+                    console.error('Error playing audio:', error);
+                });
+        }
+    }
+
+    function fadeInImage(boolWinner) {
+        // Show the overlay by adding the 'show' class
+        document.getElementById('overlay').classList.add('show');
+        //set background image
+        if(boolWinner == 1) {
+            document.getElementById('overlay').style.backgroundImage = "url('img/check.png')";
+            document.getElementById('overlay').style.backgroundSize = "contain";
+        }
+        else {
+            document.getElementById('overlay').style.backgroundImage = "url('img/x.png')";
+            //fit image to screen and stretch to fit
+            document.getElementById('overlay').style.backgroundSize = "contain";
+        }
+    }
+    
+    function fadeOutImage() {
+        // Hide the overlay by removing the 'show' class
+        document.getElementById('overlay').classList.remove('show');
+    }
 
     async function fetchGameData() {
         try {
@@ -26,12 +63,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         if (winner) {
             if (winner === playerName) {
-                lobbyContainer.innerHTML += '<p>Congratulations! You won!</p>';
+                lobbyContainer.innerHTML += '<p>Congratulations! You won! 🥇</p>';
+                playAudio('success.mp3', 1);
                 if (timeTakenByWinner) {
                     lobbyContainer.innerHTML += `<p>Your Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
                 }
             } else {
-                lobbyContainer.innerHTML += `<p>The winner is ${winner}. Better luck next time!</p>`;
+                lobbyContainer.innerHTML += `<p>The winner is ${winner}. Better luck next time! ❌</p>`;
+                playAudio('buzzer.mp3', 0);
                 if (timeTakenByWinner) {
                     lobbyContainer.innerHTML += `<p>Winner's Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
                 }

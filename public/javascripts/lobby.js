@@ -33,13 +33,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPlayerName = playerNameInput.value;
         playerListContainer.innerHTML = ''; // Clear the current player list
         players.forEach(player => {
-            const playerListItem = document.createElement('li');
-            playerListItem.textContent = player.name;
+            const playerContainer = document.createElement('div');
+            playerContainer.classList.add('player-container');
+      
+            const playerImage = document.createElement('img');
+            playerImage.classList.add('player-image');
             if (player.name === currentPlayerName) {
-                playerListItem.classList.add('current-player');
+            playerImage.src = 'img/thisPlayer.jpg';
             }
-            playerListContainer.appendChild(playerListItem);
-        });
+            else {
+            playerImage.src = 'img/otherPlayer.jpg';
+            }
+            playerContainer.appendChild(playerImage);
+
+            const playerName = document.createElement('div');
+            playerName.classList.add('player-name');
+            playerName.textContent = player.name;
+            playerContainer.appendChild(playerName);
+      
+            playerListContainer.appendChild(playerContainer);
+          });
+        
 
         if(players.length === 2) {
             //remove disabled

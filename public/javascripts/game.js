@@ -20,6 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentTime = Date.now();
         return currentTime - startTime;
     }
+    let currentAudio = null; // Track the currently playing audio
+
+    // Function to play a sound
+    function playSound(soundUrl) {
+        if (currentAudio) {
+            currentAudio.pause(); // Pause the currently playing audio
+        }
+        
+        currentAudio = new Audio(soundUrl);
+        currentAudio.play();
+    }
 
     // Fetch words when the page loads
     const gameCode = getGameCodeFromUrl();
@@ -58,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typedWord === currentWord) {
             // Clear the input field
             inputWord.value = '';
+            
+            playSound('typing.mp3');
     
             // Move to the next word
             currentWordIndex++;
@@ -195,6 +208,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (progressLabel) {
                         progressLabel.textContent = `${Math.round(progress)}%`;
                     }
+                }
+                //if the player is the current player, show this player's image
+                if (player.name === playerName) {
+                    const playerImage = document.getElementById(playerName);
+                    playerImage.src = 'img/thisPlayer.jpg';
+                }
+                else {
+                    const playerImage = document.getElementById(player.name);
+                    playerImage.src = 'img/otherPlayer.jpg';
                 }
             });
         }

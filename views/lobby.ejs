@@ -18,11 +18,9 @@
 <input type="hidden" id="playerName" value="<%= playerName %>">
 
 <h2>Players</h2>
-<ul id="playerList">
-    <% players.forEach(player => { %>
-        <li class="<%= player.isCurrentPlayer ? 'current-player' : '' %>"><%= player.name %></li>
-    <% }); %>
-</ul>
+<div id="playerList">
+    <p>Loading player list...</p>
+</div>
  
 <button id="startGameButton" disabled>Start Game</button>
     </div>
