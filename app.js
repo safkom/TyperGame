@@ -163,7 +163,7 @@ app.get('/db', async (req, res) => {
 
 
 app.post('/winner', async (req, res) => {
-  const { gameCode, playerName, timeTaken } = req.body;
+  const { gameCode, playerName, timeTaken, gamesWon } = req.body;
 
   try {
     // Find the game in the database
@@ -178,6 +178,14 @@ app.post('/winner', async (req, res) => {
       return res.status(400).send('Winner data already entered');
     }
 
+    const playerToUpdate = existingGame.players.find(player => player.name === playerName);
+
+    if (!playerToUpdate) {
+      return res.status(404).send('Player not found in this game');
+    }
+
+    playerToUpdate.gamesWon = gamesWon;
+
     // Update game with winner data
     existingGame.winner = playerName;
     existingGame.timeTakenByWinner = timeTaken;
@@ -190,6 +198,37 @@ app.post('/winner', async (req, res) => {
     res.status(500).send('Failed to enter winner data');
   }
 });
+
+app.post('/gamesWon', async (req, res) => {
+  const { gameCode, playerName, gamesWon } = req.body;
+
+  try {
+    // Find the game in the database
+    const existingGame = await Game.findOne({ gameCode });
+
+    if (!existingGame) {
+      return res.status(404).send('Game not found');
+    }
+
+    // Find the player by name and update their gamesWon
+    const playerToUpdate = existingGame.players.find(player => player.name === playerName);
+
+    if (!playerToUpdate) {
+      return res.status(404).send('Player not found in this game');
+    }
+
+    playerToUpdate.gamesWon = gamesWon;
+
+    await existingGame.save();
+
+    // Send response
+    res.status(200).send('Player gamesWon updated');
+  } catch (error) {
+    console.error('Error updating player gamesWon:', error);
+    res.status(500).send('Failed to update player gamesWon');
+  }
+});
+
 
 app.post('/data', async (req, res) => {
   const { gameCode, playerName, timeTaken } = req.body;

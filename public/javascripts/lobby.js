@@ -5,6 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameCodeInput = document.getElementById('gameCode');
     const playerNameInput = document.getElementById('playerName');
 
+
+    //check if cookie gamesWon exists
+    if (getCookie("gamesWon") === "") {
+        //if not, set cookie gamesWon to 0
+        setCookie("gamesWon", 0, 365);
+    }
+    const gamesWon = getCookie("gamesWon");
+    const currentPlayerName = playerNameInput.value;
+    const gameCode = gameCodeInput.textContent;
+    enterGamesWon(gameCode, currentPlayerName, gamesWon);
+
     // Function to fetch updated player list from the server
     function fetchUpdatedPlayerList() {
         const gameCode = gameCodeInput.textContent;
@@ -25,6 +36,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         xhr.send();
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return "";
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = `expires=${date.toUTCString()}`;
+        document.cookie = `${name}=${value};${expires};path=/`;
+    }
+
+
+
+    async function enterGamesWon(gameCode, playerName, gamesWon) {
+        try {
+            // Update the game with the winner and time taken
+            const response = await fetch('/gamesWon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    gameCode,
+                    playerName,
+                    gamesWon
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to enter winner data');
+            }
+    
+            console.log('Win data saved:', playerName, gamesWon);
+            // Redirect to the result page
+            // window.location.href = `/result?gameCode=${gameCode}`;
+    
+        } catch (error) {
+            console.error('Error entering winner data:', error);
+        }
     }
 
 
@@ -50,6 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             playerName.classList.add('player-name');
             playerName.textContent = player.name;
             playerContainer.appendChild(playerName);
+
+            const gamesWon = document.createElement('div');
+            gamesWon.style = ('margin-left: auto;');
+            gamesWon.textContent = "Games won: ";
+            gamesWon.textContent += player.gamesWon;
+            playerContainer.appendChild(gamesWon);
+
       
             playerListContainer.appendChild(playerContainer);
           });

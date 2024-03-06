@@ -5,6 +5,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let words = 0;
     let startTime = Date.now();
 
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return "";
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = `expires=${date.toUTCString()}`;
+        document.cookie = `${name}=${value};${expires};path=/`;
+    }
+
     // Function to get the value of the gameCode query parameter from the URL
     function getGameCodeFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -128,6 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function enterWinnerData(gameCode, playerName, timeTaken) {
+        let gamesWon = getCookie("gamesWon");
+        gamesWon = gamesWon + 1;
+
+        setCookie("gamesWon", gamesWon, 365);
+
         try {
             // Update the game with the winner and time taken
             const response = await fetch('/winner', {
@@ -138,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     gameCode,
                     playerName,
-                    timeTaken
+                    timeTaken,
+                    gamesWon
                 })
             });
     
@@ -146,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Failed to enter winner data');
             }
     
-            console.log('Winner data saved:', playerName, timeTaken);
+            console.log('Winner data saved:', playerName, timeTaken, gamesWon);
             // Redirect to the result page
             // window.location.href = `/result?gameCode=${gameCode}`;
     

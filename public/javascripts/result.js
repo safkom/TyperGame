@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function fadeOutImage() {
         // Hide the overlay by removing the 'show' class
         document.getElementById('overlay').classList.remove('show');
+        const element = document.getElementById("overlay");
+        setInterval(element.remove(), 1000);
     }
 
     async function fetchGameData() {
@@ -63,17 +65,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         if (winner) {
             if (winner === playerName) {
-                lobbyContainer.innerHTML += '<p>Congratulations! You won! 🥇</p>';
+                lobbyContainer.innerHTML += '<p>Congratulations! You won! 🥇</p><br>';
                 playAudio('success.mp3', 1);
                 if (timeTakenByWinner) {
                     lobbyContainer.innerHTML += `<p>Your Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
                 }
+                const playerWins = players.find(player => player.name === winner).gamesWon;
+            lobbyContainer.innerHTML += `<p>This was now your ${playerWins} win(s)</p>`;
             } else {
                 lobbyContainer.innerHTML += `<p>The winner is ${winner}. Better luck next time! ❌</p>`;
                 playAudio('buzzer.mp3', 0);
                 if (timeTakenByWinner) {
                     lobbyContainer.innerHTML += `<p>Winner's Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
                 }
+                const winnerWins = players.find(player => player.name === winner).gamesWon;
+                lobbyContainer.innerHTML += `<p>${winner} has won ${winnerWins} time(s)</p>`;
             }
         } else {
             lobbyContainer.innerHTML += '<p>Waiting for other player...</p>';
