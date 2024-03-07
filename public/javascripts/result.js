@@ -65,44 +65,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         if (winner) {
             if (winner === playerName) {
-                lobbyContainer.innerHTML += '<p>Congratulations! You won! 🥇</p><br>';
+                lobbyContainer.innerHTML += `
+                    <div class="winner-info">
+                        <p>Congratulations! You won! 🥇</p>
+                        ${timeTakenByWinner ? `<p>Your Time Taken: ${formatTime(timeTakenByWinner)}</p>` : ''}
+                        <p>This was now your ${players.find(player => player.name === winner).gamesWon} win(s)</p>
+                    </div>
+                `;
                 playAudio('success.mp3', 1);
-                if (timeTakenByWinner) {
-                    lobbyContainer.innerHTML += `<p>Your Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
-                }
-                const playerWins = players.find(player => player.name === winner).gamesWon;
-            lobbyContainer.innerHTML += `<p>This was now your ${playerWins} win(s)</p>`;
             } else {
-                lobbyContainer.innerHTML += `<p>The winner is ${winner}. Better luck next time! ❌</p>`;
+                lobbyContainer.innerHTML += `
+                    <div class="loser-info">
+                        <p>The winner is ${winner}. Better luck next time! ❌</p>
+                        ${timeTakenByWinner ? `<p>Winner's Time Taken: ${formatTime(timeTakenByWinner)}</p>` : ''}
+                        <p>${winner} has won ${players.find(player => player.name === winner).gamesWon} time(s)</p>
+                    </div>
+                `;
                 playAudio('buzzer.mp3', 0);
-                if (timeTakenByWinner) {
-                    lobbyContainer.innerHTML += `<p>Winner's Time Taken: ${formatTime(timeTakenByWinner)}</p>`;
-                }
-                const winnerWins = players.find(player => player.name === winner).gamesWon;
-                lobbyContainer.innerHTML += `<p>${winner} has won ${winnerWins} time(s)</p>`;
             }
         } else {
-            lobbyContainer.innerHTML += '<p>Waiting for other player...</p>';
+            lobbyContainer.innerHTML += '<p>Waiting for other players...</p>';
         }
     
         lobbyContainer.innerHTML += '<h2>Players</h2>';
+        const playersList = document.createElement('div');
+        playersList.classList.add('players-list');
     
         // Check if players array is defined and not empty
         if (Array.isArray(players) && players.length > 0) {
             players.forEach(player => {
                 if (player.name !== winner) {
-                    lobbyContainer.innerHTML += `<p>Name: ${player.name}</p>`;
-                    if (player.timeTaken !== null) {
-                        lobbyContainer.innerHTML += `<p>Time Taken: ${formatTime(player.timeTaken)}</p>`;
-                    } else {
-                        lobbyContainer.innerHTML += '<p>Still playing...</p>';
-                    }
+                    const playerInfo = document.createElement('div');
+                    playerInfo.classList.add('player-info');
+                    playerInfo.innerHTML = `
+                        <p class="player-name">Name: ${player.name}</p>
+                        ${player.timeTaken !== null ? `<p class="time-taken">Time Taken: ${formatTime(player.timeTaken)}</p>` : `<p class="time-taken">Still playing...</p>`}
+                    `;
+                    playersList.appendChild(playerInfo);
                 }
             });
         } else {
-            lobbyContainer.innerHTML += '<p>No other players in the game.</p>';
+            const noPlayersInfo = document.createElement('p');
+            noPlayersInfo.textContent = 'No other players in the game.';
+            playersList.appendChild(noPlayersInfo);
         }
+    
+        lobbyContainer.appendChild(playersList);
     }
+    
     
     // Function to format time from milliseconds to minutes, seconds, and milliseconds
     function formatTime(timeInMs) {

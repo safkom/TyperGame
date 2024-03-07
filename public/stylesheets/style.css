@@ -238,7 +238,6 @@ input[type="text"] {
   height: 100%;
   opacity: 0; /* Initially hidden */
   transition: opacity 1s; /* Transition effect for opacity */
-  background-image: url('your_image_url_here'); /* Set your background image here */
   background-size: cover; /* Stretch the background image to cover the entire element */
   background-repeat: no-repeat;
 
@@ -276,4 +275,60 @@ input[type="text"] {
   width: 100px; /* Adjust the size as needed */
   height: 100px; /* Adjust the size as needed */
   border-radius: 50%;
+}
+
+/* Add styles for lobby information */
+#lobbyContainer {
+  margin-top: 20px; /* Add space above lobby information */
+}
+
+#lobbyContainer p {
+  font-size: 18px; /* Decrease font size for lobby information */
+  margin-bottom: 10px; /* Add space between paragraphs */
+}
+
+#lobbyContainer h2 {
+  font-size: 24px; /* Increase font size for Players heading */
+  margin-top: 20px; /* Add space above Players heading */
+}
+
+#lobbyContainer .player-info {
+  margin-bottom: 10px; /* Add space between player information */
+}
+
+#lobbyContainer .player-info p {
+  margin-bottom: 5px; /* Add space between player details */
+}
+
+#lobbyContainer .winner-info {
+  background-color: #007bff; /* Blue background for winner information */
+  color: white; /* White text color for winner information */
+  padding: 10px; /* Add padding for winner information */
+  border-radius: 5px; /* Add border radius for winner information */
+  margin-bottom: 20px; /* Add space below winner information */
+}
+
+#lobbyContainer .loser-info {
+  background-color: #dc3545; /* Red background for loser information */
+  color: white; /* White text color for loser information */
+  padding: 10px; /* Add padding for loser information */
+  border-radius: 5px; /* Add border radius for loser information */
+  margin-bottom: 20px; /* Add space below loser information */
+}
+
+#lobbyContainer .player-name {
+  font-weight: bold; /* Bold font for player names */
+}
+
+#lobbyContainer .time-taken {
+  font-style: italic; /* Italic font style for time taken */
+}
+
+/* Add styles for player list */
+#lobbyContainer .players-list {
+  margin-top: 10px; /* Add space above player list */
+}
+
+#lobbyContainer .players-list p {
+  margin-bottom: 5px; /* Add space between player names */
 }
