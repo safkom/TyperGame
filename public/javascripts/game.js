@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function enterWinnerData(gameCode, playerName, timeTaken) {
         let gamesWon = getCookie("gamesWon");
-        gamesWon = gamesWon + 1;
+        gamesWon = parseInt(gamesWon) + 1;
 
         setCookie("gamesWon", gamesWon, 365);
 
